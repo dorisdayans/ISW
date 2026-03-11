@@ -39,7 +39,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return response()->json($user->load('role'), 200);
     }
 
     /**
@@ -47,7 +47,20 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        /*
+            UpdateUserRequest: valida antes de entrar al método.
+            User $user: Route Model Binding (si no existe, 404 automático).
+            $user->update(...): actualiza solo campos permitidos en $fillable.
+            fresh() recarga el usuario desde BD (por si cambió algo).
+            load('role') devuelve el rol completo.
+        */
+
+        $user->update($request->validated());
+
+        return response()->json([
+            'message' => 'Usuario actualizado correctamente.',
+            'data' => $user->fresh()->load('role'),
+        ], 200);
     }
 
     /**
@@ -55,6 +68,28 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete(); // Soft delete: llena deleted_at
+
+        return response()->json([
+            'message' => 'Usuario eliminado lógicamente (soft delete).',
+        ], 200);
+    }
+
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no encontrado o no está eliminado.',
+            ], 404);
+        }
+
+        $user->restore();
+
+        return response()->json([
+            'message' => 'Usuario reactivado correctamente.',
+            'data' => $user->fresh()->load('role'),
+        ], 200);
     }
 }
