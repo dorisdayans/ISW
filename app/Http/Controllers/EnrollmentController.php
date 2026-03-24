@@ -46,7 +46,12 @@ class EnrollmentController extends Controller
      */
     public function store(StoreEnrollmentRequest $request)
     {
-        
+        $enrollment = Enrollment::create($request->validated());
+
+        return response()->json([
+            'message' => 'Matrícula registrada correctamente.',
+            'data' => $enrollment,
+        ], 201);
     }
 
     /**
