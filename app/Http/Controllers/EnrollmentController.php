@@ -13,7 +13,32 @@ class EnrollmentController extends Controller
      */
     public function index()
     {
-        //
+        //$user = $request->user();
+        //tabla_relacionada.id = tabla_actual.foreign_key
+        $query = Enrollment::query()
+            ->join('courses', 'courses.id', '=', 'enrollments.course_id')
+            ->join('users as teachers', 'teachers.id', '=', 'courses.teacher_id')
+            ->join('users as students', 'students.id', '=', 'enrollments.student_id')
+            ->whereNull('courses.deleted_at')
+            ->whereNull('teachers.deleted_at')
+            ->select([
+                'enrollments.id as enrollment_number',
+                'students.name as student_name',
+                'courses.code as course_code',
+                'courses.course_name',
+                'courses.start_date',
+                'courses.start_time',
+                'teachers.name as teacher_name',
+            ]);
+
+        $enrollments = $query
+            ->orderByDesc('enrollments.id')
+            ->get();
+
+        return response()->json([
+            'message' => 'Listado de matrículas.',
+            'data' => $enrollments,
+        ], 200);
     }
 
     /**
@@ -21,7 +46,7 @@ class EnrollmentController extends Controller
      */
     public function store(StoreEnrollmentRequest $request)
     {
-        //
+        
     }
 
     /**

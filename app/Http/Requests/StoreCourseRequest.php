@@ -39,4 +39,11 @@ class StoreCourseRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'teacher_id.exists' => 'El docente seleccionado no existe o no tiene rol de profesor.',
+        ];
+    }
 }

@@ -32,6 +32,19 @@ class CourseController extends Controller
         ], 200);
     }
 
+    public function inactive()
+    {
+        $courses = Course::onlyTrashed()
+            ->with('teacher')
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'message' => 'Listado de cursos inactivos',
+            'data' => $courses,
+        ], 200);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -40,7 +53,7 @@ class CourseController extends Controller
         /* cuando necesitas crear el modelo y, 
             antes de guardarlo, agregar o modificar 
             campos que no vienen del request */
-            
+
         $course = new Course($request->validated());
 
         $course->enrolled_count = 0;
@@ -59,7 +72,10 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        //
+        return response()->json([
+            'message' => 'Curso encontrado correctamente.',
+            'data' => $course->load('teacher:id,name'),
+        ], 200);
     }
 
     /**
@@ -67,7 +83,12 @@ class CourseController extends Controller
      */
     public function update(UpdateCourseRequest $request, Course $course)
     {
-        //
+        $course->update($request->validated());
+
+        return response()->json([
+            'message' => 'Curso actualizado correctamente.',
+            'data' => $course->load('teacher:id,name'),
+        ], 200);
     }
 
     /**
@@ -75,6 +96,28 @@ class CourseController extends Controller
      */
     public function destroy(Course $course)
     {
-        //
+        $course->delete();
+
+        return response()->json([
+            'message' => 'Curso eliminado correctamente.',
+        ], 200);
+    }
+
+    public function restore($id)
+    {
+        $course = Course::onlyTrashed()->find($id);
+
+        if (!$course) {
+            return response()->json([
+                'message' => 'Curso no encontrado o no está eliminado.',
+            ], 404);
+        }
+
+        $course->restore();
+
+        return response()->json([
+            'message' => 'Curso restaurado correctamente.',
+            'data' => $course->load('teacher:id,name'),
+        ], 200);
     }
 }
