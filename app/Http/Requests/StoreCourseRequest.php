@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCourseRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreCourseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,20 @@ class StoreCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'teacher_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('role_id', 2)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'code' => ['required', 'string', 'min:2', 'max:50', 'unique:courses,code'],
+            'course_name' => ['required', 'string', 'min:3', 'max:150'],
+            'status' => ['required', 'integer'],
+            'capacity' => ['required', 'integer', 'min:1'],
+            'start_date' => ['required', 'date'],
+            'start_time' => ['required', 'date_format:H:i'],
         ];
     }
 }
