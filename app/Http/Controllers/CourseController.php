@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
+use Illuminate\Http\Request;
 use App\Models\Course;
 
 class CourseController extends Controller
@@ -11,9 +12,24 @@ class CourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $request->validate([
+            'status' => ['nullable', 'integer', 'in:1,2,3'],
+        ]);
+
+        $query = Course::with('teacher:id,name')->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->query('status'));
+        }
+
+        $courses = $query->paginate(10);
+
+        return response()->json([
+            'message' => 'Listado de cursos activos.',
+            'data' => $courses,
+        ], 200);
     }
 
     /**
@@ -21,7 +37,21 @@ class CourseController extends Controller
      */
     public function store(StoreCourseRequest $request)
     {
-        //
+        /* cuando necesitas crear el modelo y, 
+            antes de guardarlo, agregar o modificar 
+            campos que no vienen del request */
+            
+        $course = new Course($request->validated());
+
+        $course->enrolled_count = 0;
+        $course->available_seats = $course->capacity;
+
+        $course->save();
+
+        return response()->json([
+            'message' => 'Curso creado correctamente.',
+            'data' => $course->load('teacher:id,name'),
+        ], 201);
     }
 
     /**
