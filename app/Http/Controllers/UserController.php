@@ -75,11 +75,24 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function restore($id)
+    public function restore(User $user)
     {
-        $user = User::onlyTrashed()->find($id);
+        /*         $user = User::onlyTrashed()->find($id);
 
         if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no encontrado o no está eliminado.',
+            ], 404);
+        }
+
+        $user->restore();
+
+        return response()->json([
+            'message' => 'Usuario reactivado correctamente.',
+            'data' => $user->fresh()->load('role'),
+        ], 200); */
+
+        if (! $user->trashed()) {
             return response()->json([
                 'message' => 'Usuario no encontrado o no está eliminado.',
             ], 404);
